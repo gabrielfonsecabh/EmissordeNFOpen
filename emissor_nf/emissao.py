@@ -271,9 +271,12 @@ def enviar(conn, emissao_id: int, cert: CERT.Certificado, sefin_factory: SefinFa
         chave = s.chave_da_dps(e["id_dps"])
         if chave:
             nota = s.baixar_nfse(chave)
-            problemas = confere_nota(nota.xml, cli["documento"], Decimal(e["valor"]))
+            problemas = confere_nota(nota.xml, e, cli["documento"])
             if problemas:
-                raise D.DpsErro("conflito de numeração, esta DPS já gerou uma nota diferente: " + "; ".join(problemas))
+                raise D.DpsErro(
+                    f"conflito de numeração: a DPS série {e['serie']} nº {e['n_dps']} já foi usada por outra nota "
+                    f"(outro sistema, outro computador ou teste antigo). Diferenças: {'; '.join(problemas)}. "
+                    "Nada foi emitido. Ajuste a próxima DPS na página da empresa para um número livre e emita de novo.")
         else:
             try:
                 nota = s.emitir(dps_bytes)
@@ -284,6 +287,9 @@ def enviar(conn, emissao_id: int, cert: CERT.Certificado, sefin_factory: SefinFa
                 if not chave:
                     raise
                 nota = s.baixar_nfse(chave)
+                problemas = confere_nota(nota.xml, e, cli["documento"])
+                if problemas:
+                    raise D.DpsErro("conflito de numeração ao conferir a resposta da Sefin: " + "; ".join(problemas))
     except SefinErro as exc:
         rejeicao = (exc.status is not None and 400 <= exc.status < 500 and exc.status not in (401, 403, 408, 429)
                     and not any("E0014" in m for m in exc.mensagens))
@@ -328,16 +334,26 @@ def _guardar(conn, e: dict, emp: dict, nota: NotaGerada) -> dict:
     return db.obter(conn, "emissoes", e["id"])
 
 
-def confere_nota(xml: bytes, documento_cliente: str, valor: Decimal) -> list[str]:
+def confere_nota(xml: bytes, e: dict, documento_cliente: str) -> list[str]:
+    """A nota que a Sefin tem para este id de DPS é mesmo a deste pedido? Compara cliente, valor,
+    competência e descrição. Coincidir só cliente e valor (nota mensal de valor fixo) não basta."""
     r = etree.fromstring(xml)
     inf = r.find("n:infNFSe/n:DPS/n:infDPS", NS)
+    if inf is None:
+        return ["a resposta da Sefin não tem a DPS dentro da NFS-e"]
     doc = inf.findtext("n:toma/n:CNPJ", namespaces=NS) or inf.findtext("n:toma/n:CPF", namespaces=NS) or ""
     v = Decimal(inf.findtext("n:valores/n:vServPrest/n:vServ", namespaces=NS) or "0")
+    compet = inf.findtext("n:dCompet", namespaces=NS) or ""
+    desc = " ".join((inf.findtext("n:serv/n:cServ/n:xDescServ", namespaces=NS) or "").split())
     problemas = []
     if limpar(doc) != limpar(documento_cliente):
         problemas.append(f"cliente da nota é {doc}, o pedido era {limpar(documento_cliente)}")
-    if v != Decimal(str(valor)):
-        problemas.append(f"valor da nota é {v}, o pedido era {valor}")
+    if v != Decimal(str(e["valor"])):
+        problemas.append(f"valor da nota é {v}, o pedido era {e['valor']}")
+    if e.get("competencia") and compet != e["competencia"]:
+        problemas.append(f"competência da nota é {compet}, o pedido era {e['competencia']}")
+    if desc != " ".join((e.get("descricao") or "").split()):
+        problemas.append("a descrição da nota é diferente da deste pedido")
     return problemas
 
 

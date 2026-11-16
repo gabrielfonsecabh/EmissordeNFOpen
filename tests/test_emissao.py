@@ -174,3 +174,14 @@ def test_pasta_de_dados_movida_continua_achando_arquivos(conn, cadastro, ambient
     novo = db.conectar(ambiente / "outro_lugar" / "dados" / "emissor.db")
     assert C.resolver(e["pdf_path"]).exists()
     assert CERT.carregar(novo, cadastro["cert"]).documento == "11222333000181"
+
+
+def test_conflito_com_nota_igual_em_cliente_e_valor(conn, cadastro):
+    """Caso real: nota mensal de valor fixo para o mesmo cliente, emitida antes por outro sistema com o mesmo nº."""
+    sefin = SefinFalsa()
+    emissao.emitir(conn, _pedido(cadastro, ambiente=C.HOMOLOGACAO, mes_referencia="2026-09"), sefin_factory=sefin)
+    conn.execute("delete from emissoes")
+    conn.execute("delete from numeracao")
+    e = emissao.emitir(conn, _pedido(cadastro, ambiente=C.HOMOLOGACAO), sefin_factory=sefin)
+    assert e["status"] == "rejeitada" and "conflito de numeração" in e["mensagens_json"]
+    assert len(sefin.enviadas) == 1
