@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titulo %}{{ NOME }}{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='estilo.css') }}">
+</head>
+<body>
+<header class="topo"><div class="dentro">
+  <a class="marca" href="{{ url_for('inicio') }}">
+    <span class="icone"><i></i></span>
+    <span><span class="wordmark">TechZyon</span><span class="sub">{{ NOME }}</span></span>
+  </a>
+  <nav>
+    {% set ep = request.endpoint or '' %}
+    <a href="{{ url_for('inicio') }}" class="{{ 'ativo' if ep == 'inicio' }}">Início</a>
+    <a href="{{ url_for('certificados') }}" class="{{ 'ativo' if ep.startswith('certificado') }}">Certificados</a>
+    <a href="{{ url_for('empresas') }}" class="{{ 'ativo' if ep.startswith('empresa') or ep.startswith('cadastro') }}">Empresas</a>
+    <a href="{{ url_for('notas') }}" class="{{ 'ativo' if ep.startswith('nota') }}">Notas</a>
+    <a href="{{ url_for('emitir') }}" class="primario">Emitir nota</a>
+  </nav>
+</div></header>
+<main>
+  {% with msgs = get_flashed_messages(with_categories=true) %}
+    {% for cat, m in msgs %}<div class="flash {{ cat }}">{{ m }}</div>{% endfor %}
+  {% endwith %}
+  {% block conteudo %}{% endblock %}
+</main>
+<footer><div class="dentro">
+  <span><b>{{ NOME }}</b> v{{ VERSAO }} · código aberto (Apache 2.0) · roda só neste computador</span>
+  <span>Feito pela <b>TechZyon</b> · <a href="{{ SITE }}" target="_blank" rel="noopener">techzyon.com.br</a> · precisa de ajuda para implantar? Fale com a gente.</span>
+</div></footer>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block titulo %}Empresas{% endblock %}
+{% block conteudo %}
+<h1>Empresas</h1>
+<p class="lead">Quem emite a nota. Se você é contador, cadastre uma empresa para cada cliente seu: cada uma tem os próprios clientes, serviços, modelos de nota, certificado e marca no PDF.</p>
+<div class="acoes"><a class="botao" href="{{ url_for('empresa_nova') }}">Nova empresa</a></div>
+{% if empresas %}
+<table>
+  <tr><th>Apelido</th><th>Razão social</th><th>CNPJ</th><th>Município</th><th></th></tr>
+  {% for e in empresas %}
+  <tr class="{{ '' if e.ativo else 'inativo' }}">
+    <td><a href="{{ url_for('empresa', eid=e.id) }}">{{ e.apelido }}</a></td><td>{{ e.razao_social }}</td>
+    <td class="num">{{ doc(e.cnpj) }}</td><td>{{ e.municipio }}/{{ e.uf }}</td>
+    <td><a href="{{ url_for('emitir', empresa=e.id) }}">Emitir</a></td>
+  </tr>
+  {% endfor %}
+</table>
+{% else %}<p class="vazio">Nenhuma empresa cadastrada.</p>{% endif %}
+
+<h2>Importar perfil</h2>
+<p>Um perfil é um arquivo .json com a empresa, os clientes, os serviços e os modelos (sem certificado e sem senha). Use para levar o cadastro para outro computador ou compartilhar com a equipe.</p>
+<form class="cadastro" method="post" action="{{ url_for('importar_perfil') }}" enctype="multipart/form-data">
+  <input type="hidden" name="csrf" value="{{ csrf }}">
+  <div class="linha-campo"><input type="file" name="perfil" accept=".json"><button type="submit" class="secundario">Importar</button></div>
+</form>
+{% endblock %}

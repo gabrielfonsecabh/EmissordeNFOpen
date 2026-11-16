@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block titulo %}Prévia da nota{% endblock %}
+{% block conteudo %}
+<h1>Prévia da nota</h1>
+<p class="lead">Nada foi enviado ainda. Confira tudo.</p>
+
+{% for b in prev.bloqueios %}<div class="flash erro">{{ b }}</div>{% endfor %}
+{% for a in prev.avisos %}<div class="flash aviso">{{ a }}</div>{% endfor %}
+
+<div class="previa">
+  <span class="rotulo">{{ AMBIENTES[prev.pedido.ambiente] }}</span>
+  <div class="grade">
+    <div><span class="rotulo">Prestador</span><p>{{ prev.empresa.razao_social }}<br><span class="num">{{ doc(prev.empresa.cnpj) }}</span></p></div>
+    <div><span class="rotulo">Tomador</span><p>{{ prev.cliente.razao_social }}<br><span class="num">{{ doc(prev.cliente.documento) }}</span></p></div>
+    <div><span class="rotulo">Serviço</span><p>{{ prev.servico.nome }}<br><span class="num">{{ prev.servico.cod_trib_nacional }}</span></p></div>
+    <div><span class="rotulo">Certificado</span><p>{{ prev.certificado.apelido if prev.certificado else '-' }}</p></div>
+  </div>
+  <span class="rotulo">Descrição</span><p>{{ prev.descricao }}</p>
+  <div class="total num">{{ brl(prev.valor) }}</div>
+  <p class="rotulo">Competência {{ prev.competencia.strftime('%d/%m/%Y') }} · série {{ prev.empresa.serie_dps }} · DPS nº {{ prev.n_dps_previsto }} (previsto) · leiaute {{ prev.leiaute }}</p>
+</div>
+
+<form method="post" action="{{ url_for('emitir_confirmar') }}" class="cadastro">
+  <input type="hidden" name="csrf" value="{{ csrf }}">
+  {% for k in ['empresa_id','modelo_id','cliente_id','servico_id','valor','descricao','mes_referencia','data_pagamento','competencia','certificado_id','ambiente'] %}
+    <input type="hidden" name="{{ k }}" value="{{ form.get(k, '') }}">
+  {% endfor %}
+  {% if 'repetida' in prev.liberaveis or form.get('permitir_repetida') %}
+    <label><input type="checkbox" name="permitir_repetida" value="1" {{ 'checked' if form.get('permitir_repetida') }}> Quero emitir outra nota para este cliente neste mês mesmo assim</label>
+  {% endif %}
+  {% if 'valor' in prev.liberaveis or form.get('forcar_valor') %}
+    <label><input type="checkbox" name="forcar_valor" value="1" {{ 'checked' if form.get('forcar_valor') }}> O valor está certo, mesmo fora da faixa do modelo</label>
+  {% endif %}
+  {% if prev.pode_emitir %}
+    {% if prev.pedido.ambiente == PRODUCAO %}
+      <div class="producao"><b>Esta nota tem valor fiscal.</b> Depois de emitida, só sai com cancelamento no portal. Digite <b>EMITIR</b> para confirmar:
+        <input name="confirmacao" autocomplete="off"></div>
+    {% endif %}
+    <div class="acoes"><button type="submit">{{ 'Emitir nota' if prev.pedido.ambiente == PRODUCAO else 'Emitir nota de teste' }}</button>
+    <a class="botao secundario" href="javascript:history.back()">Voltar e corrigir</a></div>
+  {% else %}
+    <div class="acoes">
+      {% if prev.liberaveis %}<button type="submit" formaction="{{ url_for('emitir_previa') }}" class="secundario">Atualizar a prévia</button>{% endif %}
+      <a class="botao secundario" href="javascript:history.back()">Voltar e corrigir</a></div>
+  {% endif %}
+</form>
+{% endblock %}

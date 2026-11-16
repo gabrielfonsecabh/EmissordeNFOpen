@@ -1,0 +1,24 @@
+Emissor de NF Open Source
+Copyright 2026 TechZyon (https://www.techzyon.com.br)
+
+Este produto inclui software desenvolvido pela TechZyon.
+Projeto original: Emissor de NF Open Source, feito pela TechZyon.
+
+Quem redistribuir este software, modificado ou não, inclusive como parte de
+um produto ou serviço comercial, precisa manter este arquivo NOTICE e o
+arquivo LICENSE, conforme a seção 4 da Licença Apache 2.0.
+
+Os nomes "TechZyon" e "Emissor de NF Open Source" e o logotipo da TechZyon
+são marcas da TechZyon e não são licenciados pela Licença Apache 2.0
+(seção 6). Veja CREDITOS-E-MARCA.md.
+
+Componentes de terceiros incluídos:
+
+- Fontes IBM Plex Sans e IBM Plex Mono (emissor_nf/fontes/)
+  Copyright IBM Corp. Licença SIL Open Font License 1.1
+  (emissor_nf/fontes/LICENSE-IBM-Plex-OFL.txt). "Plex" é nome de fonte
+  reservado pela licença.
+
+- Esquemas XSD da NFS-e Nacional (emissor_nf/schemas/)
+  Publicados pela Receita Federal do Brasil / Comitê Gestor da NFS-e no
+  portal gov.br/nfse. Detalhes de origem em emissor_nf/schemas/LEIA-ME.md.

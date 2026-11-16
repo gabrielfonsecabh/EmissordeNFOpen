@@ -1,0 +1,72 @@
+{
+  "perfil_emissor_nf_open": 1,
+  "empresa": {
+    "apelido": "Exemplo Consultoria",
+    "cnpj": "11222333000181",
+    "razao_social": "EMPRESA EXEMPLO SERVICOS LTDA",
+    "nome_fantasia": null,
+    "inscricao_municipal": "1234567",
+    "cod_municipio": "3550308",
+    "municipio": "São Paulo",
+    "uf": "SP",
+    "logradouro": "RUA DO EXEMPLO",
+    "numero": "100",
+    "complemento": null,
+    "bairro": "CENTRO",
+    "cep": "01001000",
+    "telefone": null,
+    "email": "contato@empresa-exemplo.com.br",
+    "opcao_simples": "3",
+    "regime_apuracao_simples": "1",
+    "regime_especial": "0",
+    "serie_dps": 1,
+    "marca_json": "{\"nome\": \"Exemplo Consultoria\", \"subtitulo\": \"Soluções em gestão\", \"site\": \"empresa-exemplo.com.br\", \"cor_acento\": \"#0f766e\", \"cor_texto\": \"#101010\", \"creditos\": true}"
+  },
+  "clientes": [
+    {
+      "tipo_doc": "CNPJ",
+      "documento": "33444555000181",
+      "razao_social": "CLIENTE FICTICIO COMERCIO LTDA",
+      "email": "financeiro@cliente-exemplo.com.br",
+      "telefone": null,
+      "cod_municipio": "3509502",
+      "municipio": "Campinas",
+      "uf": "SP",
+      "cep": "13010000",
+      "logradouro": "AVENIDA MODELO",
+      "numero": "2000",
+      "complemento": null,
+      "bairro": "CENTRO",
+      "ativo": 1
+    }
+  ],
+  "servicos": [
+    {
+      "nome": "Consultoria em sistemas",
+      "cod_trib_nacional": "010101",
+      "cod_trib_municipal": null,
+      "cod_nbs": null,
+      "descricao_padrao": "Consultoria em sistemas referente a {mes_ref}/{ano_ref}.",
+      "valor_padrao": null,
+      "cod_local_prestacao": null,
+      "trib_issqn": "1",
+      "tp_ret_issqn": "1",
+      "cst_pis_cofins": null,
+      "tp_ret_pis_cofins": null,
+      "perc_trib_sn": "6.00",
+      "ativo": 1
+    }
+  ],
+  "modelos": [
+    {
+      "nome": "Mensalidade Cliente Fictício",
+      "valor": "1500.00",
+      "valor_minimo": "1000.00",
+      "valor_maximo": "2000.00",
+      "descricao_modelo": "Consultoria em sistemas referente a {mes_ref}/{ano_ref}. Pagamento em {data_pagamento}.",
+      "ativo": 1,
+      "cliente_documento": "33444555000181",
+      "servico_nome": "Consultoria em sistemas"
+    }
+  ]
+}

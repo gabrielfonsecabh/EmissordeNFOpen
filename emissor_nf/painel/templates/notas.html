@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block titulo %}Notas{% endblock %}
+{% block conteudo %}
+<h1>Notas</h1>
+<form method="get" class="acoes">
+  <select name="empresa" style="max-width:360px"><option value="">Todas as empresas</option>{% for e in empresas %}<option value="{{ e.id }}" {{ 'selected' if eid == e.id }}>{{ e.apelido }}</option>{% endfor %}</select>
+  <button class="secundario" type="submit">Filtrar</button>
+</form>
+{% if notas %}
+<table>
+  <tr><th>Data</th><th>Nº NFS-e</th><th>Empresa</th><th>Cliente</th><th>Mês ref.</th><th>Valor</th><th>Status</th><th></th></tr>
+  {% for e in notas %}
+  <tr>
+    <td class="num">{{ (e.dh_emissao or e.criado_em)[:10] }}</td><td class="num">{{ e.numero_nfse or '-' }}</td>
+    <td>{{ e.empresa }}</td><td>{{ e.cliente or '-' }}</td><td class="num">{{ e.mes_referencia or '-' }}</td>
+    <td class="num">{{ brl(e.valor) }}</td>
+    <td><span class="selo {{ e.status }}">{{ e.status }}</span>{% if e.ambiente == HOMOLOGACAO %} <span class="selo homol">teste</span>{% endif %}{% if e.id in pendentes %} <span class="selo verificar">conferir</span>{% endif %}</td>
+    <td><a href="{{ url_for('nota', nid=e.id) }}">Abrir</a>{% if e.pdf_path %} · <a href="{{ url_for('nota_arquivo', nid=e.id, tipo='pdf') }}" target="_blank">PDF</a> · <a href="{{ url_for('nota_arquivo', nid=e.id, tipo='xml') }}">XML</a>{% endif %}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% else %}<p class="vazio">Nenhuma nota{{ ' desta empresa' if eid }}.</p>{% endif %}
+{% endblock %}

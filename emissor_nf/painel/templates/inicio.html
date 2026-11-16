@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block conteudo %}
+<h1>Emita suas notas de serviço com o seu certificado</h1>
+<p class="lead">NFS-e do padrão nacional (Receita Federal), direto do seu computador para a Sefin. Sem mensalidade, sem nuvem: o certificado e as notas ficam aqui.</p>
+
+{% for tipo, msg, link in alertas %}
+  <div class="flash {{ tipo }}">{{ msg }} <a href="{{ link }}">Resolver</a></div>
+{% endfor %}
+
+<div class="grade">
+  <div class="passo"><b>1</b><span class="rotulo">Certificado</span><p>Cadastre o certificado A1 (.pfx) de cada empresa. A senha vai para o cofre do sistema.</p><a href="{{ url_for('certificados') }}">Certificados ({{ certs|length }})</a></div>
+  <div class="passo"><b>2</b><span class="rotulo">Empresa</span><p>Cadastre quem emite: dados, regime, clientes, serviços e modelos de nota.</p><a href="{{ url_for('empresas') }}">Empresas ({{ empresas|length }})</a></div>
+  <div class="passo"><b>3</b><span class="rotulo">Teste</span><p>Emita primeiro em <strong>homologação</strong>: a nota é de teste e não vale nada. Confira o PDF.</p><a href="{{ url_for('emitir') }}">Emitir em teste</a></div>
+  <div class="passo"><b>4</b><span class="rotulo">Produção</span><p>Tudo certo? Emita de verdade. O emissor pede confirmação e trava erros comuns.</p><a href="{{ url_for('exemplo_pdf') }}" target="_blank">Ver um PDF de exemplo</a></div>
+</div>
+
+<h2>Últimas emissões</h2>
+{% if ultimas %}
+<table>
+  <tr><th>Nº NFS-e</th><th>Empresa</th><th>Cliente</th><th>Valor</th><th>Status</th><th></th></tr>
+  {% for e in ultimas %}
+  <tr>
+    <td class="num">{{ e.numero_nfse or '-' }}</td><td>{{ e.empresa }}</td><td>{{ e.cliente or '-' }}</td>
+    <td class="num">{{ brl(e.valor) }}</td>
+    <td><span class="selo {{ e.status }}">{{ e.status }}</span>{% if e.ambiente == HOMOLOGACAO %} <span class="selo homol">teste</span>{% endif %}</td>
+    <td><a href="{{ url_for('nota', nid=e.id) }}">Abrir</a></td>
+  </tr>
+  {% endfor %}
+</table>
+{% else %}<p class="vazio">Nenhuma emissão ainda.</p>{% endif %}
+{% endblock %}

@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Atalho: ./emissor <comando>. Ex.: ./emissor painel, ./emissor status
+cd "$(dirname "$0")"
+command -v uv >/dev/null 2>&1 || export PATH="$HOME/.local/bin:$PATH"
+exec uv run --quiet emissor "$@"

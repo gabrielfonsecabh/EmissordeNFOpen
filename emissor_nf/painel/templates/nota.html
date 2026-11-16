@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block titulo %}Emissão {{ e.id }}{% endblock %}
+{% block conteudo %}
+<span class="rotulo">Emissão {{ e.id }} · {{ AMBIENTES[e.ambiente] }}</span>
+<h1>{% if e.status == 'emitida' %}NFS-e nº {{ e.numero_nfse }}{% else %}Nota {{ e.status }}{% endif %}</h1>
+<p><span class="selo {{ e.status }}">{{ e.status }}</span></p>
+
+{% if e.status == 'emitida' %}
+  <div class="flash ok">Nota autorizada pela Sefin. Os arquivos estão salvos em <span class="mono">{{ pasta }}</span></div>
+  <div class="acoes">
+    <a class="botao" href="{{ url_for('nota_arquivo', nid=e.id, tipo='pdf') }}" target="_blank">Abrir PDF</a>
+    <a class="botao secundario" href="{{ url_for('nota_arquivo', nid=e.id, tipo='xml') }}">Baixar XML</a>
+  </div>
+{% elif e.status == 'rejeitada' %}
+  <div class="flash erro">A Sefin (ou a conferência local) recusou a nota. Nada foi gerado. Corrija o cadastro e emita de novo. Veja docs/07-problemas-comuns.md.</div>
+{% elif pendente %}
+  <div class="flash aviso">Não deu para confirmar se a nota foi gerada (internet ou Sefin fora do ar). Clique em conferir: o emissor pergunta à Sefin pelo número desta DPS e nunca manda em dobro.</div>
+  <form method="post" action="{{ url_for('nota_verificar', nid=e.id) }}"><input type="hidden" name="csrf" value="{{ csrf }}"><button type="submit">Conferir com a Sefin</button></form>
+{% endif %}
+
+{% if mensagens %}<h2>Mensagens</h2><ul>{% for m in mensagens %}<li class="mono">{{ m }}</li>{% endfor %}</ul>{% endif %}
+
+<h2>Dados enviados</h2>
+<table>
+  <tr><td class="rotulo">Prestador</td><td>{{ snap.empresa.razao_social }} · {{ doc(snap.empresa.cnpj) }}</td></tr>
+  <tr><td class="rotulo">Tomador</td><td>{{ snap.cliente.razao_social }} · {{ doc(snap.cliente.documento) }}</td></tr>
+  <tr><td class="rotulo">Serviço</td><td>{{ snap.servico.nome }} ({{ snap.servico.cod_trib_nacional }})</td></tr>
+  <tr><td class="rotulo">Valor</td><td class="num">{{ brl(e.valor) }}</td></tr>
+  <tr><td class="rotulo">Descrição</td><td>{{ e.descricao }}</td></tr>
+  <tr><td class="rotulo">Mês de referência</td><td class="num">{{ e.mes_referencia or '-' }}</td></tr>
+  <tr><td class="rotulo">DPS</td><td class="mono">{{ e.id_dps }} (série {{ e.serie }}, nº {{ e.n_dps }})</td></tr>
+  <tr><td class="rotulo">Chave</td><td class="mono">{{ e.chave or '-' }}</td></tr>
+  <tr><td class="rotulo">Tentativas</td><td class="num">{{ e.tentativas }}</td></tr>
+</table>
+{% endblock %}

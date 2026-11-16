@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block titulo %}Certificados{% endblock %}
+{% block conteudo %}
+<h1>Certificados</h1>
+<p class="lead">Cadastre o certificado digital A1 (arquivo .pfx ou .p12) de cada empresa. Um contador pode cadastrar vários e escolher na hora de emitir. O arquivo é copiado para a pasta <span class="mono">dados/certificados</span> deste computador e a senha vai para o cofre do sistema (Chaves no Mac, Gerenciador de Credenciais no Windows).</p>
+
+{% if certs %}
+<table>
+  <tr><th>Apelido</th><th>Titular</th><th>CNPJ/CPF</th><th>Válido até</th><th></th></tr>
+  {% for c in certs %}
+  <tr>
+    <td>{{ c.apelido }}</td><td>{{ c.titular }}</td><td class="num">{{ doc(c.documento) }}</td><td class="num">{{ c.valido_ate }}</td>
+    <td>
+      <form class="inline" method="post" action="{{ url_for('certificado_testar', cid=c.id) }}">
+        <input type="hidden" name="csrf" value="{{ csrf }}"><input type="hidden" name="ambiente" value="{{ HOMOLOGACAO }}">
+        <button class="secundario" type="submit">Testar conexão</button>
+      </form>
+      <a class="botao secundario" href="{{ url_for('empresa_nova', certificado=c.id) }}">Criar empresa com ele</a>
+      <form class="inline" method="post" action="{{ url_for('certificado_remover', cid=c.id) }}" onsubmit="return confirm('Remover o certificado e apagar a senha do cofre?')">
+        <input type="hidden" name="csrf" value="{{ csrf }}"><button class="perigo" type="submit">Remover</button>
+      </form>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+{% else %}<p class="vazio">Nenhum certificado cadastrado.</p>{% endif %}
+
+<h2>Cadastrar certificado</h2>
+<form class="cadastro" method="post" enctype="multipart/form-data">
+  <input type="hidden" name="csrf" value="{{ csrf }}">
+  <div class="campo"><label>Arquivo do certificado (.pfx ou .p12) *</label><input type="file" name="arquivo" accept=".pfx,.p12"><small>Só certificado A1 (arquivo). O A3 (token ou cartão) não funciona aqui.</small></div>
+  <div class="campo"><label>Senha do certificado *</label><input type="password" name="senha" autocomplete="off"><small>A mesma senha que você usa para instalar o certificado. Ela não fica salva no banco nem em arquivo.</small></div>
+  <div class="campo"><label>Apelido</label><input name="apelido" placeholder="Ex.: Minha empresa 2027"><small>Vazio = nome do titular.</small></div>
+  <div class="acoes"><button type="submit">Cadastrar certificado</button></div>
+</form>
+{% endblock %}

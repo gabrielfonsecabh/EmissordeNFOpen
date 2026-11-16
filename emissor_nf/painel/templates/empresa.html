@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block titulo %}{{ emp.apelido }}{% endblock %}
+{% block conteudo %}
+<span class="rotulo">Empresa</span>
+<h1>{{ emp.apelido }}</h1>
+<p class="lead">{{ emp.razao_social }} · <span class="num">{{ doc(emp.cnpj) }}</span> · {{ emp.municipio }}/{{ emp.uf }}</p>
+<div class="acoes">
+  <a class="botao" href="{{ url_for('emitir', empresa=emp.id) }}">Emitir nota</a>
+  <a class="botao secundario" href="{{ url_for('empresa_editar', eid=emp.id) }}">Editar dados</a>
+  <a class="botao secundario" href="{{ url_for('empresa_marca', eid=emp.id) }}">Marca do PDF</a>
+  <a class="botao secundario" href="{{ url_for('empresa_previa_pdf', eid=emp.id) }}" target="_blank">Prévia do PDF</a>
+  <a class="botao secundario" href="{{ url_for('empresa_exportar', eid=emp.id) }}">Exportar perfil</a>
+</div>
+
+<div class="grade">
+  <div><span class="rotulo">Certificado</span><p>{% if cert %}{{ cert.apelido }}<br><span class="num">válido até {{ cert.valido_ate }}</span>{% else %}<b>Nenhum.</b> <a href="{{ url_for('empresa_editar', eid=emp.id) }}">Escolher</a>{% endif %}</p></div>
+  <div><span class="rotulo">Marca no PDF</span><p>{{ marca.nome }}{% if not marca.creditos %} (sem créditos){% endif %}</p></div>
+  <div><span class="rotulo">Série da DPS</span><p class="num">{{ emp.serie_dps }}</p></div>
+  <div><span class="rotulo">Próxima DPS</span><p class="num">Produção: {{ numeracao[PRODUCAO] }} · Teste: {{ numeracao[HOMOLOGACAO] }}</p>
+    <details><summary>Ajustar</summary>
+      <form method="post" action="{{ url_for('empresa_numeracao', eid=emp.id) }}">
+        <input type="hidden" name="csrf" value="{{ csrf }}">
+        <select name="ambiente"><option value="{{ PRODUCAO }}">Produção</option><option value="{{ HOMOLOGACAO }}">Teste</option></select>
+        <input name="proximo" placeholder="Próximo número">
+        <label><input type="checkbox" name="confirmo" value="1"> Sei o que estou fazendo</label>
+        <button class="secundario" type="submit">Salvar</button>
+        <small>Só mude se você já emitiu por outro sistema próprio usando esta mesma série.</small>
+      </form>
+    </details>
+  </div>
+</div>
+
+<h2 id="clientes">Clientes (tomadores)</h2>
+<div class="acoes"><a class="botao secundario" href="{{ url_for('cadastro_novo', eid=emp.id, tabela='clientes') }}">Novo cliente</a></div>
+{% if clientes %}<table><tr><th>Nome</th><th>CNPJ/CPF</th><th>Município</th><th></th></tr>
+{% for c in clientes %}<tr class="{{ '' if c.ativo else 'inativo' }}"><td>{{ c.razao_social }}</td><td class="num">{{ doc(c.documento) }}</td><td>{{ c.municipio or c.cod_municipio }}</td>
+<td><a href="{{ url_for('cadastro_editar', eid=emp.id, tabela='clientes', rid=c.id) }}">Editar</a>
+<form class="inline" method="post" action="{{ url_for('cadastro_ativo', eid=emp.id, tabela='clientes', rid=c.id) }}"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="secundario" type="submit">{{ 'Inativar' if c.ativo else 'Reativar' }}</button></form></td></tr>{% endfor %}
+</table>{% else %}<p class="vazio">Nenhum cliente.</p>{% endif %}
+
+<h2 id="servicos">Serviços</h2>
+<div class="acoes"><a class="botao secundario" href="{{ url_for('cadastro_novo', eid=emp.id, tabela='servicos') }}">Novo serviço</a></div>
+{% if servicos %}<table><tr><th>Nome</th><th>Cód. nacional</th><th>Valor padrão</th><th></th></tr>
+{% for s in servicos %}<tr class="{{ '' if s.ativo else 'inativo' }}"><td>{{ s.nome }}</td><td class="num">{{ s.cod_trib_nacional }}</td><td class="num">{{ brl(s.valor_padrao) }}</td>
+<td><a href="{{ url_for('cadastro_editar', eid=emp.id, tabela='servicos', rid=s.id) }}">Editar</a>
+<form class="inline" method="post" action="{{ url_for('cadastro_ativo', eid=emp.id, tabela='servicos', rid=s.id) }}"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="secundario" type="submit">{{ 'Inativar' if s.ativo else 'Reativar' }}</button></form></td></tr>{% endfor %}
+</table>{% else %}<p class="vazio">Nenhum serviço.</p>{% endif %}
+
+<h2 id="modelos">Modelos de nota</h2>
+<p>Um modelo junta cliente, serviço, valor e texto. Na hora de emitir, é só escolher o modelo.</p>
+<div class="acoes"><a class="botao secundario" href="{{ url_for('cadastro_novo', eid=emp.id, tabela='modelos') }}">Novo modelo</a></div>
+{% if modelos %}<table><tr><th>Modelo</th><th>Cliente</th><th>Serviço</th><th>Valor</th><th></th></tr>
+{% for m in modelos %}<tr class="{{ '' if m.ativo else 'inativo' }}"><td>{{ m.nome }}</td><td>{{ m.cliente }}</td><td>{{ m.servico }}</td><td class="num">{{ brl(m.valor) }}</td>
+<td><a href="{{ url_for('emitir', empresa=emp.id, modelo=m.id) }}">Emitir</a> · <a href="{{ url_for('cadastro_editar', eid=emp.id, tabela='modelos', rid=m.id) }}">Editar</a>
+<form class="inline" method="post" action="{{ url_for('cadastro_ativo', eid=emp.id, tabela='modelos', rid=m.id) }}"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="secundario" type="submit">{{ 'Inativar' if m.ativo else 'Reativar' }}</button></form></td></tr>{% endfor %}
+</table>{% else %}<p class="vazio">Nenhum modelo.</p>{% endif %}
+{% endblock %}

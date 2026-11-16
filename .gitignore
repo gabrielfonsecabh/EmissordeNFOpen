@@ -1,0 +1,35 @@
+# Seus dados: banco, certificados, notas emitidas, logos e logs. NUNCA versione.
+dados/
+*.db
+*.db-wal
+*.db-shm
+
+# Certificados e chaves
+*.pfx
+*.p12
+*.pem
+*.key
+*.crt
+
+# Configuração local
+.env
+.env.*
+
+# Python e ferramentas
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
+
+# Sistema
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Downloads usados para montar o projeto
+_baixados/

@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block titulo %}{{ titulo }}{% endblock %}
+{% block conteudo %}
+<h1>{{ titulo }}</h1>
+{% if erros._geral %}<div class="flash erro">{{ erros._geral }}</div>{% endif %}
+{% if erros %}<div class="flash erro">Confira os campos marcados.</div>{% endif %}
+<form class="cadastro" method="post" action="{{ acao }}" {% if multipart %}enctype="multipart/form-data"{% endif %}>
+  <input type="hidden" name="csrf" value="{{ csrf }}">
+  {% set ns = namespace(grupo=None) %}
+  {% for c in campos %}
+    {% if c.grupo and c.grupo != ns.grupo %}
+      {% if ns.grupo %}</fieldset>{% endif %}<fieldset><legend>{{ c.grupo }}</legend>
+      {% set ns.grupo = c.grupo %}
+    {% endif %}
+    {% set v = dados.get(c.nome, '') if dados else '' %}
+    <div class="campo">
+      {% if c.tipo == 'checkbox' %}
+        <label><input type="checkbox" name="{{ c.nome }}" value="1" {{ 'checked' if v }}> {{ c.rotulo }}</label>
+      {% else %}
+        <label for="f-{{ c.nome }}">{{ c.rotulo }}{% if c.obrigatorio %} *{% endif %}</label>
+        {% if c.tipo == 'select' %}
+          <select id="f-{{ c.nome }}" name="{{ c.nome }}">
+            {% for val, txt in c.opcoes %}<option value="{{ val }}" {{ 'selected' if (v|string) == val }}>{{ txt }}</option>{% endfor %}
+          </select>
+        {% elif c.tipo == 'textarea' %}
+          <textarea id="f-{{ c.nome }}" name="{{ c.nome }}">{{ v or '' }}</textarea>
+        {% elif c.nome == busca_cnpj %}
+          <div class="linha-campo"><input id="f-{{ c.nome }}" name="{{ c.nome }}" value="{{ v or '' }}">
+          <button type="button" class="secundario" onclick="buscar('cnpj','{{ c.nome }}')">Buscar dados do CNPJ</button></div>
+          <small id="status-cnpj"></small>
+        {% elif c.nome == 'cep' and busca_cep %}
+          <div class="linha-campo"><input id="f-cep" name="cep" value="{{ v or '' }}">
+          <button type="button" class="secundario" onclick="buscar('cep','cep')">Buscar pelo CEP</button></div>
+          <small id="status-cep"></small>
+        {% else %}
+          <input id="f-{{ c.nome }}" type="{{ c.tipo }}" name="{{ c.nome }}" value="{{ v or '' }}" {% if c.tipo == 'file' %}accept=".png,.jpg,.jpeg"{% endif %}>
+        {% endif %}
+      {% endif %}
+      {% if erros.get(c.nome) %}<div class="erro">{{ erros[c.nome] }}</div>{% endif %}
+      {% if c.ajuda %}<small>{{ c.ajuda }}</small>{% endif %}
+    </div>
+  {% endfor %}
+  {% if ns.grupo %}</fieldset>{% endif %}
+  <div class="acoes">
+    <button type="submit">Salvar</button>
+    {% if restaurar %}<button type="submit" name="restaurar" value="1" class="secundario">Voltar para a marca padrão</button>{% endif %}
+    <a class="botao secundario" href="javascript:history.back()">Cancelar</a>
+  </div>
+  {% if busca_cnpj or busca_cep %}<p class="rotulo">As buscas consultam a BrasilAPI e o ViaCEP só quando você clica no botão.</p>{% endif %}
+</form>
+{% endblock %}

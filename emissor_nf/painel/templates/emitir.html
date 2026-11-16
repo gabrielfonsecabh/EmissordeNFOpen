@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block titulo %}Emitir nota{% endblock %}
+{% block conteudo %}
+<h1>Emitir nota</h1>
+{% if not empresas %}
+  <p class="vazio">Cadastre um certificado e uma empresa primeiro. <a href="{{ url_for('certificados') }}">Começar</a></p>
+{% else %}
+<form method="get" class="cadastro">
+  <div class="campo"><label>Empresa que vai emitir</label>
+    <div class="linha-campo"><select name="empresa">{% for e in empresas %}<option value="{{ e.id }}" {{ 'selected' if emp and e.id == emp.id }}>{{ e.apelido }} ({{ doc(e.cnpj) }})</option>{% endfor %}</select>
+    <button class="secundario" type="submit">Escolher</button></div>
+  </div>
+</form>
+
+{% if emp %}
+  {% if not clientes or not servicos %}
+    <p class="vazio">Esta empresa ainda não tem {{ 'clientes' if not clientes else 'serviços' }}. <a href="{{ url_for('empresa', eid=emp.id) }}">Cadastrar</a></p>
+  {% else %}
+  <form class="cadastro" method="post" action="{{ url_for('emitir_previa') }}">
+    <input type="hidden" name="csrf" value="{{ csrf }}"><input type="hidden" name="empresa_id" value="{{ emp.id }}">
+    <fieldset><legend>O que emitir</legend>
+      <div class="campo"><label>Modelo (opcional)</label>
+        <select name="modelo_id"><option value="">Sem modelo</option>
+          {% for m in modelos %}<option value="{{ m.id }}" data-cliente="{{ m.cliente_id }}" data-servico="{{ m.servico_id }}" data-valor="{{ m.valor }}" {{ 'selected' if form.modelo_id == m.id|string }}>{{ m.nome }}</option>{% endfor %}
+        </select><small>Escolher um modelo preenche cliente, serviço, valor e texto.</small></div>
+      <div class="campo"><label>Cliente *</label><select name="cliente_id">{% for c in clientes %}<option value="{{ c.id }}" {{ 'selected' if form.cliente_id == c.id|string }}>{{ c.razao_social }} ({{ doc(c.documento) }})</option>{% endfor %}</select></div>
+      <div class="campo"><label>Serviço *</label><select name="servico_id">{% for s in servicos %}<option value="{{ s.id }}" {{ 'selected' if form.servico_id == s.id|string }}>{{ s.nome }} ({{ s.cod_trib_nacional }})</option>{% endfor %}</select></div>
+      <div class="campo"><label>Valor (R$)</label><input name="valor" value="{{ form.valor }}" placeholder="Vazio = valor do modelo ou do serviço"></div>
+      <div class="campo"><label>Descrição</label><textarea name="descricao" placeholder="Vazio = texto do modelo ou do serviço">{{ form.descricao }}</textarea>
+        <small>Pode usar {mes_ref}, {ano_ref}, {mes_num} e {data_pagamento}.</small></div>
+    </fieldset>
+    <fieldset><legend>Datas</legend>
+      <div class="campo"><label>Mês de referência do serviço</label><input type="month" name="mes_referencia" value="{{ form.mes_referencia }}"><small>Usado no texto ({mes_ref}) e na trava contra nota repetida no mesmo mês.</small></div>
+      <div class="campo"><label>Data de pagamento</label><input type="date" name="data_pagamento" value="{{ form.data_pagamento }}"><small>Usada só no texto ({data_pagamento}).</small></div>
+      <div class="campo"><label>Competência</label><input type="date" name="competencia"><small>Vazio = data de hoje. Não pode ser no futuro.</small></div>
+    </fieldset>
+    <fieldset><legend>Envio</legend>
+      <div class="campo"><label>Certificado</label><select name="certificado_id"><option value="">Padrão da empresa</option>{% for c in certs %}<option value="{{ c.id }}">{{ c.apelido }} ({{ doc(c.documento) }})</option>{% endfor %}</select></div>
+      <div class="campo"><label>Ambiente</label>
+        <select name="ambiente"><option value="{{ HOMOLOGACAO }}" selected>Homologação: teste, sem valor fiscal</option><option value="{{ PRODUCAO }}">Produção: nota de verdade</option></select>
+        <small>Comece sempre em homologação.</small></div>
+    </fieldset>
+    <div class="acoes"><button type="submit">Ver a prévia</button></div>
+  </form>
+  {% endif %}
+{% endif %}
+{% endif %}
+{% endblock %}
